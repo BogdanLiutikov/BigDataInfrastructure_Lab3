@@ -3,7 +3,7 @@ import os
 from time import sleep
 
 from httpx import request
-from sqlalchemy import URL, create_engine, text, select
+from sqlalchemy import URL, create_engine, select, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from . import models, schemas
@@ -67,7 +67,7 @@ class Database:
         models.Base.metadata.create_all(self.engine)
         self.logger.info("Все таблицы созданы")
 
-    def __create_database_through_master_database(self, user, password, database_name: str = 'Lab2'):
+    def __create_database_through_master_database(self, user, password, database_name: str = 'Lab'):
         connection_url = URL.create(
             "mssql+pyodbc",
             username=user,
@@ -88,6 +88,7 @@ class Database:
                                     CREATE DATABASE {database_name};
                                   END;'''))
         engine.dispose(close=True)
+        self.logger.info(f"database {database_name} was created")
         return database_name
 
     def get_session(self):
@@ -103,6 +104,7 @@ class Database:
                                         y_true=record.y_true[i],
                                         y_pred=record.y_pred[i])
             db.add(db_predict)
+        self.logger.info("records added")
         db.commit()
         db.refresh(db_predict)
         return db_predict
